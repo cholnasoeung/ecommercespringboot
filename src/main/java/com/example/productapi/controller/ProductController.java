@@ -46,4 +46,8 @@ public class ProductController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+    @org.springframework.web.bind.annotation.GetMapping("/test-cart")
+    public String testCart() {
+        return "Cart is connected!";
+    }
 }

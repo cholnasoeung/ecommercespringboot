@@ -26,8 +26,14 @@ public class Product {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private Integer quantity;
+    // We ONLY keep stockQuantity now
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity;
+
+    // Link to Category
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

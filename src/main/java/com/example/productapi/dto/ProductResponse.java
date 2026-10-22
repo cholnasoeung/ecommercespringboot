@@ -8,7 +8,7 @@ public record ProductResponse(
         String name,
         String description,
         BigDecimal price,
-        Integer quantity,
+        Integer stockQuantity,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

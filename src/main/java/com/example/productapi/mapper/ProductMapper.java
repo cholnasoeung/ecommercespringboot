@@ -13,7 +13,7 @@ public class ProductMapper {
                 .name(r.name())
                 .description(r.description())
                 .price(r.price())
-                .quantity(r.quantity())
+                .stockQuantity(r.stockQuantity())
                 .build();
     }
 
@@ -21,14 +21,18 @@ public class ProductMapper {
         p.setName(r.name());
         p.setDescription(r.description());
         p.setPrice(r.price());
-        p.setQuantity(r.quantity());
+        p.setStockQuantity(r.stockQuantity());
     }
 
     public ProductResponse toResponse(Product p) {
         return new ProductResponse(
-                p.getId(), p.getName(), p.getDescription(),
-                p.getPrice(), p.getQuantity(),
-                p.getCreatedAt(), p.getUpdatedAt()
+                p.getId(),
+                p.getName(),
+                p.getDescription(),
+                p.getPrice(),
+                p.getStockQuantity(),
+                p.getCreatedAt(),
+                p.getUpdatedAt()
         );
     }
 }
