@@ -8,10 +8,12 @@ import com.example.productapi.mapper.ProductMapper;
 import com.example.productapi.repository.ProductRepository;
 import com.example.productapi.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +31,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> findAll() {
-        return repository.findAll().stream().map(mapper::toResponse).toList();
+    public Page<ProductResponse> findAll(String search, int page, int size) {
+        // Create pageable object (page 0, size 10, sorted by id ascending)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+
+        Page<Product> productPage;
+
+        // If there's a search query, search by name. Otherwise, get all.
+        if (search != null && !search.isEmpty()) {
+            productPage = repository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            productPage = repository.findAll(pageable);
+        }
+
+        // Convert the Page of Entities to a Page of DTOs
+        return productPage.map(mapper::toResponse);
     }
 
     @Override

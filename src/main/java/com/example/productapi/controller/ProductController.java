@@ -5,12 +5,12 @@ import com.example.productapi.dto.ProductResponse;
 import com.example.productapi.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -25,9 +25,13 @@ public class ProductController {
         return ResponseEntity.created(URI.create("/api/products/" + created.id())).body(created);
     }
 
+    // UPDATED: Now supports Pagination and Search
     @GetMapping
-    public List<ProductResponse> findAll() {
-        return service.findAll();
+    public Page<ProductResponse> findAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return service.findAll(search, page, size);
     }
 
     @GetMapping("/{id}")
@@ -45,9 +49,5 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
-    }
-    @org.springframework.web.bind.annotation.GetMapping("/test-cart")
-    public String testCart() {
-        return "Cart is connected!";
     }
 }
