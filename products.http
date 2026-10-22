@@ -1,0 +1,33 @@
+### Create product
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Keyboard",
+  "description": "Mechanical",
+  "price": 89.99,
+  "quantity": 10
+}
+
+### List all products
+GET http://localhost:8080/api/products
+
+### Get product by id
+GET http://localhost:8080/api/products/1
+
+### Update product
+PUT http://localhost:8080/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Keyboard RGB",
+  "description": "Mechanical backlit",
+  "price": 99.99,
+  "quantity": 7
+}
+
+### Delete product
+DELETE http://localhost:8080/api/products/1
+
+### Not found (404)
+GET http://localhost:8080/api/products/999
