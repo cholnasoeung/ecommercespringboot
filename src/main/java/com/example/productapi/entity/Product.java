@@ -26,11 +26,12 @@ public class Product {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    // We ONLY keep stockQuantity now
     @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
-    // Link to Category
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;

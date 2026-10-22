@@ -25,7 +25,7 @@ public class ProductMapper {
                 .description(r.description())
                 .price(r.price())
                 .stockQuantity(r.stockQuantity())
-                .category(category) // <--- Link Category
+                .category(category)
                 .build();
     }
 
@@ -39,7 +39,7 @@ public class ProductMapper {
         p.setDescription(r.description());
         p.setPrice(r.price());
         p.setStockQuantity(r.stockQuantity());
-        p.setCategory(category); // <--- Link Category
+        p.setCategory(category);
     }
 
     public ProductResponse toResponse(Product p) {
@@ -49,6 +49,7 @@ public class ProductMapper {
                 p.getDescription(),
                 p.getPrice(),
                 p.getStockQuantity(),
+                p.getImageUrl(),
                 p.getCreatedAt(),
                 p.getUpdatedAt()
         );
