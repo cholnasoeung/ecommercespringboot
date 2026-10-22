@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.productapi.dto.AdminOrderResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +91,40 @@ public class OrderService {
                 savedOrder.getTotalAmount(),
                 savedOrder.getStatus().name(),
                 "Checkout successful! Order placed."
+        );
+    }
+
+    // 1. Get ALL orders in the system (Admin only)
+    public List<AdminOrderResponse> getAllOrdersForAdmin() {
+        return orderRepository.findAll().stream().map(order -> new AdminOrderResponse(
+                order.getId(),
+                order.getUser().getEmail(), // See who bought it
+                order.getOrderDate(),
+                order.getTotalAmount(),
+                order.getStatus().name()
+        )).toList();
+    }
+
+    // 2. Update order status
+    @Transactional
+    public AdminOrderResponse updateOrderStatus(Long orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        try {
+            order.setStatus(OrderStatus.valueOf(newStatus.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status. Use PENDING, SHIPPED, DELIVERED, or CANCELLED.");
+        }
+
+        Order saved = orderRepository.save(order);
+
+        return new AdminOrderResponse(
+                saved.getId(),
+                saved.getUser().getEmail(),
+                saved.getOrderDate(),
+                saved.getTotalAmount(),
+                saved.getStatus().name()
         );
     }
 }
