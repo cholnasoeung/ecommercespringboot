@@ -29,6 +29,17 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
+    // --- NEW FIELDS FOR CHECKOUT ---
+    @Column
+    private String shippingAddress;
+
+    @Column
+    private String phoneNumber;
+
+    @Column
+    private String paymentMethod;
+    // -------------------------------
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 }

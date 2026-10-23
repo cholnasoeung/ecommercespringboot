@@ -2,6 +2,7 @@ package com.example.productapi.service;
 
 import com.example.productapi.dto.AdminOrderResponse;
 import com.example.productapi.dto.OrderItemDto;
+import com.example.productapi.dto.OrderRequest;
 import com.example.productapi.dto.OrderResponse;
 import com.example.productapi.entity.*;
 import com.example.productapi.exception.ResourceNotFoundException;
@@ -33,7 +34,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse checkout() {
+    public OrderResponse checkout(OrderRequest request) {
         User user = getCurrentUser();
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
@@ -46,6 +47,11 @@ public class OrderService {
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+
+        // Save shipping details
+        order.setShippingAddress(request.shippingAddress());
+        order.setPhoneNumber(request.phoneNumber());
+        order.setPaymentMethod(request.paymentMethod());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -75,7 +81,10 @@ public class OrderService {
         order.setItems(orderItems);
 
         Order savedOrder = orderRepository.save(order);
-        cartItemRepository.deleteAll(cart.getItems());
+
+        // Properly clear the cart so the frontend sees it's empty
+        cart.getItems().clear();
+        cartRepository.save(cart);
 
         return new OrderResponse(
                 savedOrder.getId(),
@@ -100,7 +109,6 @@ public class OrderService {
         )).toList();
     }
 
-    // FIXED: Added @Transactional(readOnly = true)
     @Transactional(readOnly = true)
     public List<AdminOrderResponse> getAllOrdersForAdmin() {
         return orderRepository.findAll().stream().map(order -> new AdminOrderResponse(
@@ -109,6 +117,9 @@ public class OrderService {
                 order.getOrderDate(),
                 order.getTotalAmount(),
                 order.getStatus().name(),
+                order.getShippingAddress(),
+                order.getPhoneNumber(),
+                order.getPaymentMethod(),
                 order.getItems().stream().map(item -> new OrderItemDto(
                         item.getProduct().getName(),
                         item.getQuantity(),
@@ -136,6 +147,9 @@ public class OrderService {
                 saved.getOrderDate(),
                 saved.getTotalAmount(),
                 saved.getStatus().name(),
+                saved.getShippingAddress(),
+                saved.getPhoneNumber(),
+                saved.getPaymentMethod(),
                 saved.getItems().stream().map(item -> new OrderItemDto(
                         item.getProduct().getName(),
                         item.getQuantity(),

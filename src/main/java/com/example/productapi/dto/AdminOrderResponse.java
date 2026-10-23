@@ -10,5 +10,8 @@ public record AdminOrderResponse(
         LocalDateTime orderDate,
         BigDecimal totalAmount,
         String status,
-        List<OrderItemDto> items // <--- ADD THIS
+        String shippingAddress,
+        String phoneNumber,
+        String paymentMethod,
+        List<OrderItemDto> items
 ) {}

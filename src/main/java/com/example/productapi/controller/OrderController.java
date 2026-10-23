@@ -1,5 +1,6 @@
 package com.example.productapi.controller;
 
+import com.example.productapi.dto.OrderRequest;
 import com.example.productapi.dto.OrderResponse;
 import com.example.productapi.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/checkout")
-    public ResponseEntity<OrderResponse> checkout() {
-        return ResponseEntity.ok(orderService.checkout());
+    public ResponseEntity<OrderResponse> checkout(@RequestBody OrderRequest request) {
+        return ResponseEntity.ok(orderService.checkout(request));
     }
 
     @GetMapping

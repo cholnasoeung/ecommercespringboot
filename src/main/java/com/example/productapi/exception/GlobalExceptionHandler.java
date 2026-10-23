@@ -34,4 +34,15 @@ public class GlobalExceptionHandler {
                 "fields", fields
         ));
     }
+
+    // ADD THIS: Catch custom RuntimeExceptions (like "Not enough stock" or "Cart is empty")
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 400,
+                "error", "Bad Request",
+                "message", ex.getMessage()
+        ));
+    }
 }
