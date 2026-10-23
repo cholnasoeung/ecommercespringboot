@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -16,5 +18,10 @@ public class OrderController {
     @PostMapping("/checkout")
     public ResponseEntity<OrderResponse> checkout() {
         return ResponseEntity.ok(orderService.checkout());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OrderResponse>> getOrderHistory() {
+        return ResponseEntity.ok(orderService.getUserOrderHistory());
     }
 }

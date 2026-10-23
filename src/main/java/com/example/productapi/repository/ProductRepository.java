@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Used for search functionality
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    // (Optional) kept from previous steps if you used it
+    // Add these two methods for filtering by category
+    Page<Product> findByCategory_NameIgnoreCase(String categoryName, Pageable pageable);
+
+    Page<Product> findByNameContainingIgnoreCaseAndCategory_NameIgnoreCase(String name, String categoryName, Pageable pageable);
+
     boolean existsByName(String name);
 }

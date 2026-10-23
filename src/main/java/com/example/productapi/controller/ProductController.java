@@ -31,9 +31,10 @@ public class ProductController {
     @GetMapping
     public Page<ProductResponse> findAll(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String category, // <-- Add this
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return service.findAll(search, page, size);
+        return service.findAll(search, category, page, size);
     }
 
     @GetMapping("/{id}")

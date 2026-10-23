@@ -1,5 +1,7 @@
 package com.example.productapi.service;
 
+import com.example.productapi.dto.AdminOrderResponse;
+import com.example.productapi.dto.OrderItemDto;
 import com.example.productapi.dto.OrderResponse;
 import com.example.productapi.entity.*;
 import com.example.productapi.exception.ResourceNotFoundException;
@@ -13,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.productapi.dto.AdminOrderResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,6 @@ public class OrderService {
             throw new RuntimeException("Cart is empty");
         }
 
-        // 1. Create the Order
         Order order = new Order();
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
@@ -50,20 +50,16 @@ public class OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
-        // 2. Process each item in the cart
         for (CartItem cartItem : cart.getItems()) {
             Product product = cartItem.getProduct();
 
-            // Check stock
             if (product.getStockQuantity() < cartItem.getQuantity()) {
                 throw new RuntimeException("Not enough stock for product: " + product.getName());
             }
 
-            // Deduct stock
             product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
             productRepository.save(product);
 
-            // Create OrderItem (Historical record)
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
@@ -71,7 +67,6 @@ public class OrderService {
             orderItem.setPriceAtPurchase(product.getPrice());
             orderItems.add(orderItem);
 
-            // Add to total
             BigDecimal itemTotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
         }
@@ -79,10 +74,7 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
         order.setItems(orderItems);
 
-        // 3. Save Order (this cascades to save OrderItems)
         Order savedOrder = orderRepository.save(order);
-
-        // 4. Clear the Cart
         cartItemRepository.deleteAll(cart.getItems());
 
         return new OrderResponse(
@@ -94,18 +86,37 @@ public class OrderService {
         );
     }
 
-    // 1. Get ALL orders in the system (Admin only)
-    public List<AdminOrderResponse> getAllOrdersForAdmin() {
-        return orderRepository.findAll().stream().map(order -> new AdminOrderResponse(
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getUserOrderHistory() {
+        User user = getCurrentUser();
+        List<Order> orders = orderRepository.findByUserOrderByOrderDateDesc(user);
+
+        return orders.stream().map(order -> new OrderResponse(
                 order.getId(),
-                order.getUser().getEmail(), // See who bought it
                 order.getOrderDate(),
                 order.getTotalAmount(),
-                order.getStatus().name()
+                order.getStatus().name(),
+                "Order retrieved successfully"
         )).toList();
     }
 
-    // 2. Update order status
+    // FIXED: Added @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
+    public List<AdminOrderResponse> getAllOrdersForAdmin() {
+        return orderRepository.findAll().stream().map(order -> new AdminOrderResponse(
+                order.getId(),
+                order.getUser().getEmail(),
+                order.getOrderDate(),
+                order.getTotalAmount(),
+                order.getStatus().name(),
+                order.getItems().stream().map(item -> new OrderItemDto(
+                        item.getProduct().getName(),
+                        item.getQuantity(),
+                        item.getPriceAtPurchase()
+                )).toList()
+        )).toList();
+    }
+
     @Transactional
     public AdminOrderResponse updateOrderStatus(Long orderId, String newStatus) {
         Order order = orderRepository.findById(orderId)
@@ -124,7 +135,12 @@ public class OrderService {
                 saved.getUser().getEmail(),
                 saved.getOrderDate(),
                 saved.getTotalAmount(),
-                saved.getStatus().name()
+                saved.getStatus().name(),
+                saved.getItems().stream().map(item -> new OrderItemDto(
+                        item.getProduct().getName(),
+                        item.getQuantity(),
+                        item.getPriceAtPurchase()
+                )).toList()
         );
     }
 }

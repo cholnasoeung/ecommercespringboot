@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final ProductMapper mapper;
-    private final FileService fileService; // <-- Added FileService
+    private final FileService fileService;
 
     @Override
     public ProductResponse create(ProductRequest request) {
@@ -36,16 +36,31 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponse> findAll(String search, int page, int size) {
+    public Page<ProductResponse> findAll(String search, String category, int page, int size) {
+        // Create pageable object (page 0, size 10, sorted by id ascending)
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
         Page<Product> productPage;
-        if (search != null && !search.isEmpty()) {
+
+        // Check if search and category are provided
+        boolean hasSearch = search != null && !search.isEmpty();
+        boolean hasCategory = category != null && !category.isEmpty();
+
+        if (hasSearch && hasCategory) {
+            // Filter by BOTH name and category
+            productPage = repository.findByNameContainingIgnoreCaseAndCategory_NameIgnoreCase(search, category, pageable);
+        } else if (hasSearch) {
+            // Filter by name only
             productPage = repository.findByNameContainingIgnoreCase(search, pageable);
+        } else if (hasCategory) {
+            // Filter by category only
+            productPage = repository.findByCategory_NameIgnoreCase(category, pageable);
         } else {
+            // No filters, get all
             productPage = repository.findAll(pageable);
         }
 
+        // Convert the Page of Entities to a Page of DTOs
         return productPage.map(mapper::toResponse);
     }
 

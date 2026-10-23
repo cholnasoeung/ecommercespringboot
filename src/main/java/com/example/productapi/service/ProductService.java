@@ -11,7 +11,8 @@ public interface ProductService {
 
     ProductResponse create(ProductRequest request);
 
-    Page<ProductResponse> findAll(String search, int page, int size);
+    // Change the findAll signature to include category
+    Page<ProductResponse> findAll(String search, String category, int page, int size);
 
     ProductResponse findById(Long id);
 

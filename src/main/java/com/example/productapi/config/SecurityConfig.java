@@ -44,31 +44,23 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults()) // Allows React to connect
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Swagger UI
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // 1. Allow CORS pre-flight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 2. Auth (Login / Register)
+                        // 2. Swagger & Auth
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 3. Images (Allow React to load images without a token)
+                        // 3. Images
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // 4. Products (Public view, Authenticated create/edit)
+                        // 4. Products & Categories
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/products/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").authenticated()
-
-                        // 5. Categories (Public view, Admin only create)
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
 
-                        // 6. Admin Dashboard
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // 7. Everything else (Cart, Orders) requires login
+                        // 5. Everything else (Cart, Orders, Admin) requires a valid token
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
