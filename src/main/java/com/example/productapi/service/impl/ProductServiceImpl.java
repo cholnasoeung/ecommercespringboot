@@ -6,7 +6,7 @@ import com.example.productapi.entity.Product;
 import com.example.productapi.exception.ResourceNotFoundException;
 import com.example.productapi.mapper.ProductMapper;
 import com.example.productapi.repository.ProductRepository;
-import com.example.productapi.service.FileService;
+import com.example.productapi.service.StorageService;
 import com.example.productapi.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
     private final ProductMapper mapper;
-    private final FileService fileService;
+    private final StorageService storageService;
 
     @Override
     public ProductResponse create(ProductRequest request) {
@@ -37,30 +37,22 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> findAll(String search, String category, int page, int size) {
-        // Create pageable object (page 0, size 10, sorted by id ascending)
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-
         Page<Product> productPage;
 
-        // Check if search and category are provided
         boolean hasSearch = search != null && !search.isEmpty();
         boolean hasCategory = category != null && !category.isEmpty();
 
         if (hasSearch && hasCategory) {
-            // Filter by BOTH name and category
             productPage = repository.findByNameContainingIgnoreCaseAndCategory_NameIgnoreCase(search, category, pageable);
         } else if (hasSearch) {
-            // Filter by name only
             productPage = repository.findByNameContainingIgnoreCase(search, pageable);
         } else if (hasCategory) {
-            // Filter by category only
             productPage = repository.findByCategory_NameIgnoreCase(category, pageable);
         } else {
-            // No filters, get all
             productPage = repository.findAll(pageable);
         }
 
-        // Convert the Page of Entities to a Page of DTOs
         return productPage.map(mapper::toResponse);
     }
 
@@ -85,15 +77,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public String uploadProductImage(Long productId, MultipartFile file) throws IOException {
         Product product = getOrThrow(productId);
-
-        // Save the file and get the URL
-        String imageUrl = fileService.saveImage(file);
-
-        // Save the URL to the database
-        product.setImageUrl(imageUrl);
+        String imagePath = storageService.uploadFile(file);
+        product.setImageUrl(imagePath);
         repository.save(product);
-
-        return imageUrl;
+        return imagePath;
     }
 
     private Product getOrThrow(Long id) {
