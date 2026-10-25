@@ -15,6 +15,14 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public Category createCategory(CategoryRequest request) {
+        // Check if category already exists to prevent database crash
+        boolean exists = categoryRepository.findAll().stream()
+                .anyMatch(c -> c.getName().equalsIgnoreCase(request.name()));
+
+        if (exists) {
+            throw new RuntimeException("Category '" + request.name() + "' already exists!");
+        }
+
         Category category = new Category();
         category.setName(request.name());
         return categoryRepository.save(category);
